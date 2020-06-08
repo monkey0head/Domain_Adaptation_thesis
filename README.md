@@ -18,6 +18,6 @@ The repo contains a source code for master thesis on Unsupervised Domain Adaptat
 Получить эмбеддинги полученной модели можно с помощью get_features.py, оценить качество обученной модели - с помощью evaluate.py.
 Необходимо указать путь к файлу обученной модели в аргументе --checkpoint командной строки.
 
-Также в репозитории выложена презентация к дипломной работе, где можно больше узнать о деталях экспериментов.
+Также в репозитории выложена (презентация)[https://github.com/monkey0head/Domain_Adaptation_thesis/blob/master/presentation.pdf] к дипломной работе, где можно больше узнать о деталях экспериментов.
 
 
