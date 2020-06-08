@@ -46,8 +46,49 @@ class Office31Dataset(ImageFolder):
             unlabeled_indexes.extend(all_class_indexes[labeled_num:])
 
         return labeled_indexes, unlabeled_indexes
-    
-    
+
+
+class VisDADataset(ImageFolder):
+    """
+        VisDA Dataset class.
+        More info about the dataset: http://ai.bu.edu/visda-2017/
+        Data link: https://github.com/VisionLearningGroup/taskcv-2017-public/tree/master/classification
+    """
+
+    def __init__(self, root, transform, image_size, **kwargs):
+        # print(transform)
+        # print(image_size)
+        if transform is None:
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+        super().__init__(root, transform=transform, **kwargs)
+
+    def get_semi_supervised_indexes_for_subset(self, labeled_ratio, subset_indices):
+        subset_images_with_classes = np.array(self.imgs)[subset_indices]
+        class_name_to_id = self.class_to_idx
+        data_classes = [int(x[1]) for x in subset_images_with_classes]
+        unique_classes, classes_counts = np.unique(data_classes, return_counts=True)
+        labeled_indexes = []
+        unlabeled_indexes = []
+        last_included = False
+
+        for class_id in unique_classes:
+            all_class_indexes = np.where(np.array(data_classes) == class_id)[0]
+            labeled_num = labeled_ratio * classes_counts[class_id]
+            if (labeled_num % 1 > 0):
+                labeled_num = int(labeled_num + last_included)
+                last_included = not last_included
+            else:
+                labeled_num = int(labeled_num)
+            labeled_indexes.extend(all_class_indexes[:labeled_num])
+            unlabeled_indexes.extend(all_class_indexes[labeled_num:])
+
+        return labeled_indexes, unlabeled_indexes
+
+
 class MnistDataset(MNIST):
     """
         MNIST Dataset class. Inherits from `torchvision.datasets.MNIST`.
@@ -214,7 +255,7 @@ def create_dataset(dataset_name, domain, data_path, split_ratios, transform, ima
         torchvision.dataset object
     """
 
-    assert dataset_name in ["office-31", "mnist"], f"Dataset {dataset_name} is not implemented"
+    assert dataset_name in ["office-31", "mnist", 'visda'], f"Dataset {dataset_name} is not implemented"
 
     if dataset_name == "office-31":
         dataset_domains = ["amazon", "dslr", "webcam"]
@@ -259,5 +300,24 @@ def create_dataset(dataset_name, domain, data_path, split_ratios, transform, ima
         val_size = len_dataset - train_size
         
         train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
+
+    elif dataset_name == "visda":
+
+        dataset_domains = ["models", "real"]
+
+        assert domain in dataset_domains, f"Incorrect domain {domain}: " + \
+                                          f"dataset {dataset_name} domains: {dataset_domains}"
+
+        folder_name = 'train' if domain == 'models' else 'validation'
+        data_path = '..'
+        dataset = VisDADataset(f"{data_path}/{dataset_name}/{folder_name}", transform=transform,
+                                  image_size=image_size)
+
+        len_dataset = len(dataset)
+        train_size = int(len_dataset * split_ratios[0])
+        val_size = int(len_dataset * split_ratios[1])
+        test_size = len_dataset - train_size - val_size
+
+        train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
     return train_dataset, val_dataset, test_dataset

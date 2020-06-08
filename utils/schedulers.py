@@ -22,4 +22,3 @@ class DANNCASchedulerSGD:
     def step(self, opt, current_epoch, total_epoch):
         for param_group in opt.param_groups:
             param_group['lr'] = self.base_lr * (1 + self.gamma * current_epoch) ** (-self.power)
-            # print(param_group)

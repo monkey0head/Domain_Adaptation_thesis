@@ -21,7 +21,7 @@ class Trainer:
         loss, loss_info = self.calc_loss(src_batch, trg_batch)
 
 
-        if dann_config.DANN_CA:
+        if dann_config.DANN_CA or dann_config.DADA:
             classifier_loss, feature_loss = loss
             self.loss_logger.store(loss=classifier_loss.data.cpu().item() + feature_loss.data.cpu().item(), **loss_info)
             opt.zero_grad()
@@ -35,7 +35,7 @@ class Trainer:
             grad_for_classifier = temp_grad
 
             opt.zero_grad()
-            feature_loss.backward()
+            feature_loss.backward(retain_graph=True)
             temp_grad = []
             for param in self.model.parameters():
                 if param.requires_grad:
@@ -62,7 +62,7 @@ class Trainer:
                         elif count >= dann_config.FEATURES_END:
                             temp_grad = grad_for_classifier[count]
                     param.grad.data = temp_grad
-                count = count + 1
+                count += 1
 
         else:
             self.loss_logger.store(loss=loss.data.cpu().item(), **loss_info)
@@ -133,7 +133,7 @@ class Trainer:
                 if src_val_data is not None and trg_val_data is not None:
                     for val_step, (src_batch, trg_batch) in enumerate(zip(src_val_data, trg_val_data)):
                         loss, loss_info = self.calc_loss(src_batch, trg_batch)
-                        if dann_config.DANN_CA:
+                        if dann_config.DANN_CA or dann_config.DADA:
                             classifier_loss, feature_loss = loss
                             self.loss_logger.store(prefix="val",
                                 loss=classifier_loss.data.cpu().item() + feature_loss.data.cpu().item(), **loss_info)

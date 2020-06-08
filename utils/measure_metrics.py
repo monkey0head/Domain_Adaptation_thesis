@@ -11,7 +11,6 @@ def calc_metric(metric_functor, model, dataset_gen):
 
 
 def measure_metric(metric_functor, data_dict, save=False, file_name=None):
-    # TODO mb move save to another func
     required_keys = {'topic', 'load_model', 'load_dataset'}
     for i in data_dict:
         assert required_keys == set(i.keys())

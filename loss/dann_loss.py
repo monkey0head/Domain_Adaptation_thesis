@@ -3,41 +3,6 @@ import torch
 import configs.dann_config as dann_config
 
 
-# call loss_DANN instead of this function
-def _loss_DANN(
-        class_predictions_logits,
-        logprobs_target,
-        instances_labels,
-        is_target,
-        domain_loss_weight,
-        prediction_loss_weight,
-        unk_value=dann_config.UNK_VALUE,
-        device=torch.device('cpu')
-):
-    """
-    :param class_predictions_logits: Tensor, shape = (batch_size, n_classes).
-        Raw (NO logsoftmax).
-    :param logprobs_target: Tensor, shape = (batch_size,):
-        logprobs that domain is target.
-    :param instances_labels: np.Array, shape = (batch_size,)
-    :param is_target: np.Array, shape = (batch_size,)
-    :param domain_loss_weight: weight of domain loss
-    :param prediction_loss_weight: weight of prediction loss
-    :param unk_value: value that means that true label is unknown
-    """
-    instances_labels = instances_labels.long()
-    is_target = is_target.float()
-
-    crossentropy = torch.nn.CrossEntropyLoss(ignore_index=unk_value)
-    prediction_loss = crossentropy(class_predictions_logits, instances_labels)
-    binary_crossentropy = torch.nn.BCEWithLogitsLoss()
-    domain_loss = binary_crossentropy(logprobs_target, is_target)
-    loss = domain_loss_weight * domain_loss \
-           + prediction_loss_weight * prediction_loss
-    return loss
-
-
-# call loss_DANN instead of this function
 def _loss_DANN_splitted(
         class_logits_on_src,
         class_logits_on_trg,

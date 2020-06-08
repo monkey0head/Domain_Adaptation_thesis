@@ -175,6 +175,13 @@ class DANNCA_Model(BaseModel):
         raise RuntimeError(str(dann_config.FEATURES + ' is not implemented'))
 
 
+class DADA_Model(DANNCA_Model):
+    def __init__(self):
+        super(DADA_Model, self).__init__()
+        self.features, self.pooling, self.class_classifier, \
+        _, _ = backbone_models.get_backbone_model()
+
+
 class OneDomainModel(BaseModel):
     def __init__(self):
         super(OneDomainModel, self).__init__()

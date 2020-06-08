@@ -1,9 +1,12 @@
+"""
+Code to download features data vectors from convolution layers or before classifier layer
+"""
 import os
 import torch
 import argparse
 import numpy as np
 
-from models import DANNModel, DANNCA_Model
+from models import OneDomainModel, DANNModel, DANNCA_Model, DADA_Model
 from dataloader import create_data_generators_my
 from metrics import AccuracyScoreFromLogits
 import configs.dann_config as dann_config
@@ -37,15 +40,15 @@ if __name__ == '__main__':
                                                    num_workers=dann_config.NUM_WORKERS,
                                                    device=device)
 
-        model = DANNCA_Model().to(device)
-        # model = DANNModel().to(device)
+        # select model type: OneDomainModel, DANNModel, DANNCA_Model, DADA_Model
+        model = DANNModel().to(device)
         model.load_state_dict(torch.load(args.checkpoint))
         model.eval()
 
         features, classes = get_classes_features(model, gen_t)
         classes = classes.astype('int')
         features /= np.linalg.norm(features,  axis=-1, keepdims=True)
-        embeddings_name = 'dann-ca_141_after_conv'
+        embeddings_name = 'dann_rich_141_after_conv'
 
         path = './embeddings/' + embeddings_name
         if not os.path.exists(path):

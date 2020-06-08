@@ -169,7 +169,6 @@ class WandbCallback:
         Callback that logs everything to wandb
         """
         wandb.init(*args, **kwargs, project="domain_adaptation", reinit=True)
-        # wandb.init(*args, **kwargs, project="DomainAdaptation", entity='arqwer', reinit=True)
         wandb.config.update(dict_from_module(dann_config))
 
     def __call__(self, model, epoch_log, current_epoch, total_epoch):
